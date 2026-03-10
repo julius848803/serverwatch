@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServerWatch Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .overall-status {
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+
+        .overall-status.healthy {
+            background: #10b981;
+            color: white;
+        }
+
+        .overall-status.degraded {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .overall-status.critical {
+            background: #ef4444;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.online {
+            background: #10b981;
+        }
+
+        .status-badge.warning {
+            background: #f59e0b;
+        }
+
+        .status-badge.offline {
+            background: #ef4444;
+        }
+
+        .status-badge.error {
+            background: #6b7280;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connection-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .connection-dot.disconnected {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status">
+        <div class="connection-dot" id="connectionDot"></div>
+        <span id="connectionText">Verbunden</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-server"></i> ServerWatch</h1>
+            <p style="color: #666; margin-top: 10px;">Live Server Monitoring Dashboard</p>
+            <div class="overall-status" id="overallStatus">Wird geladen...</div>
+        </header>
+
+        <div class="grid" id="serverGrid">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
+
+        <footer>
+            <p>ServerWatch v1.2.0 by xXLuckyGamer04Xx</p>
+            <p style="margin-top: 5px; opacity: 0.8;">Letzte Aktualisierung: <span id="lastUpdate">-</span></p>
+        </footer>
+    </div>
+
+    <script>
+        let ws = null;
+        let reconnectInterval = null;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket verbunden');
+                document.getElementById('connectionDot').classList.remove('disconnected');
+                document.getElementById('connectionText').textContent = 'Verbunden';
+                
+                if (reconnectInterval) {
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = null;
+                }
+
+                setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send('ping');
+                    }
+                }, 30000);
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'status_update') {
+                    updateDashboard(data);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket getrennt');
+                document.getElementById('connectionDot').classList.add('disconnected');
+                document.getElementById('connectionText').textContent = 'Getrennt';
+                
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(() => {
+                        console.log('Versuche Reconnect...');
+                        connectWebSocket();
+                    }, 5000);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Fehler:', error);
+            };
+        }
+
+        function updateDashboard(data) {
+            const overallStatus = document.getElementById('overallStatus');
+            overallStatus.className = `overall-status ${data.overall}`;
+            overallStatus.textContent = {
+                'healthy': '✅ Alles OK',
+                'degraded': '⚠️ Teilausfall',
+                'critical': '🔴 Kritisch',
+                'unknown': '❓ Unbekannt'
+            }[data.overall] || data.overall;
+
+            const grid = document.getElementById('serverGrid');
+            grid.innerHTML = '';
+
+            data.targets.forEach(target => {
+                const card = createServerCard(target);
+                grid.appendChild(card);
+            });
+
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('de-DE');
+        }
+
+        function createServerCard(target) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const statusEmoji = {
+                'online': '🟢',
+                'offline': '🔴',
+                'warning': '⚠️',
+                'error': '⚙️',
+                'unknown': '❓'
+            }[target.status] || '❓';
+
+            let infoRows = '';
+
+            if (target.type === 'minecraft') {
+                infoRows += `
+                    <div class="info-row">
+                        <span class="info-label">👥 Spieler:</span>
+                        <span class="info-value">${target.players_online || 0}/${target.players_max || 0}</span>
+                    </div>
+                `;
+                
+                if (target.version) {
+                    infoRows += `
+                        <div class="info-row">
+                            <span class="info-label">📦 Version:</span>
+                            <span class="info-value">${target.version}</span>
+                        </div>
+                    `;
+                }
+
+                if (target.container_state) {
+                    infoRows += `
+                        <div class="info-row">
+                            <span class="info-label">🐳 Container:</span>
+                            <span class="info-value">${target.container_state}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            if (target.latency_ms) {
+                infoRows += `
+                    <div class="info-row">
+                        <span class="info-label">📡 Latenz:</span>
+                        <span class="info-value">${target.latency_ms}ms</span>
+                    </div>
+                `;
+            }
+
+            if (target.response_time_ms) {
+                infoRows += `
+                    <div class="info-row">
+                        <span class="info-label">⏱️ Antwortzeit:</span>
+                        <span class="info-value">${target.response_time_ms}ms</span>
+                    </div>
+                `;
+            }
+
+            if (target.http_code) {
+                infoRows += `
+                    <div class="info-row">
+                        <span class="info-label">📡 HTTP:</span>
+                        <span class="info-value">${target.http_code}</span>
+                    </div>
+                `;
+            }
+
+            if (target.host && target.port) {
+                infoRows += `
+                    <div class="info-row">
+                        <span class="info-label">📍 Adresse:</span>
+                        <span class="info-value">${target.host}:${target.port}</span>
+                    </div>
+                `;
+            }
+
+            let errorHTML = '';
+            if (target.error) {
+                errorHTML = `<div class="error-message">❌ ${target.error}</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${target.name}</div>
+                    <div class="status-badge ${target.status}">${statusEmoji}</div>
+                </div>
+                ${infoRows}
+                ${errorHTML}
+            `;
+
+            return card;
+        }
+
+        connectWebSocket();
+    </script>
+</body>
+</html>

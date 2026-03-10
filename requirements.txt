@@ -1,0 +1,28 @@
+# ServerWatch Requirements
+# Author: xXLuckyGamer04Xx
+# Version: 1.5.0
+
+# Async & Networking
+aiohttp>=3.8.0
+aioping>=0.3.0
+
+# Minecraft Server Status
+mcstatus>=10.0.0
+
+# Docker Remote API
+docker>=6.0.0
+
+# Benachrichtigungen
+requests>=2.28.0
+python-telegram-bot>=20.0
+
+# Web Dashboard
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Optional: Better Performance
+uvloop; sys_platform != 'win32'

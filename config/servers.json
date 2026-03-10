@@ -1,0 +1,39 @@
+{
+  "interval_seconds": 7,
+  "vserver_ip": "123.456.789.0",
+  "docker_host": "tcp://123.456.789.0:2376",
+  "critical_threshold_percent": 75,
+  "targets": [
+    {
+      "name": "vServer Host",
+      "host": "123.456.789.0",
+      "type": "ping"
+    },
+    {
+      "name": "lobby-server",
+      "host": "123.456.789.0",
+      "port": 25565,
+      "type": "minecraft",
+      "docker_container": "lobby-server"
+    },
+    {
+      "name": "citybuild-server",
+      "host": "123.456.789.0",
+      "port": 25566,
+      "type": "minecraft",
+      "docker_container": "citybuild-server"
+    },
+    {
+      "name": "MySQL",
+      "host": "123.456.789.0",
+      "port": 3306,
+      "type": "tcp"
+    },
+    {
+      "name": "phpMyAdmin",
+      "host": "123.456.789.0",
+      "port": 80,
+      "type": "http"
+    }
+  ]
+}

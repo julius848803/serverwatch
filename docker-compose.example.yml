@@ -1,0 +1,95 @@
+version: '3.8'
+
+# Beispiel docker-compose.yml für vServer
+# Minecraft-Server Setup mit ServerWatch Monitoring
+# Author: xXLuckyGamer04Xx
+
+services:
+  # Lobby Server
+  lobby-server:
+    image: itzg/minecraft-server:latest
+    container_name: lobby-server
+    restart: unless-stopped
+    ports:
+      - "25565:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "1.20.4"
+      MEMORY: "2G"
+      SERVER_NAME: "Lobby Server"
+      MOTD: "§6Kr3pp1's Network §7| §aLobby"
+      MAX_PLAYERS: "100"
+      DIFFICULTY: "peaceful"
+      ONLINE_MODE: "FALSE"
+      VIEW_DISTANCE: "8"
+    volumes:
+      - ./lobby-data:/data
+    networks:
+      - minecraft-net
+
+  # CityBuild Server
+  citybuild-server:
+    image: itzg/minecraft-server:latest
+    container_name: citybuild-server
+    restart: unless-stopped
+    ports:
+      - "25566:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "1.20.4"
+      MEMORY: "4G"
+      SERVER_NAME: "CityBuild Server"
+      MOTD: "§6Kr3pp1's §bCityBuild"
+      MAX_PLAYERS: "50"
+      DIFFICULTY: "normal"
+      ONLINE_MODE: "FALSE"
+      VIEW_DISTANCE: "10"
+    volumes:
+      - ./citybuild-data:/data
+    networks:
+      - minecraft-net
+
+  # MySQL Datenbank
+  mysql:
+    image: mysql:8.0
+    container_name: minecraft-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "SECURE_PASSWORD_HERE"
+      MYSQL_DATABASE: "minecraft"
+      MYSQL_USER: "minecraft"
+      MYSQL_PASSWORD: "SECURE_PASSWORD_HERE"
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    networks:
+      - minecraft-net
+
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: "SECURE_PASSWORD_HERE"
+    depends_on:
+      - mysql
+    networks:
+      - minecraft-net
+
+networks:
+  minecraft-net:
+    driver: bridge
+
+# Volumes für Persistenz
+# volumes:
+#   lobby-data:
+#   citybuild-data:
+#   mysql-data:

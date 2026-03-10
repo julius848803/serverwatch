@@ -1,0 +1,117 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   🖥️  ServerWatch v1.2.0 - Advanced Server Monitoring System    ║
+║                                                                  ║
+║   Entwickelt von: xXLuckyGamer04Xx                              ║
+║   Lizenz: MIT                                                    ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📋 SCHNELLSTART (5 Minuten Setup)
+═══════════════════════════════════════════════════════════════════
+
+1️⃣  INSTALLATION
+   ─────────────
+   $ ./install.sh
+
+2️⃣  KONFIGURATION
+   ──────────────
+   $ nano .env                    # Discord, Telegram, Docker konfigurieren
+   $ nano config/servers.json     # Deine Server eintragen
+
+3️⃣  TESTEN
+   ───────
+   $ python3 main.py
+
+4️⃣  DASHBOARD ÖFFNEN
+   ─────────────────
+   → http://localhost:8000
+
+
+📚 WICHTIGE DATEIEN
+═══════════════════════════════════════════════════════════════════
+
+README.md               ← Komplette Dokumentation
+GITHUB_SETUP.md         ← Repository auf GitHub hochladen
+GIT_COMMANDS.md         ← Git Cheat Sheet
+PROJECT_STRUCTURE.md    ← Projektarchitektur verstehen
+QUICKSTART.md           ← Detaillierte Schnellstart-Anleitung
+
+
+🚀 PRODUCTION DEPLOYMENT
+═══════════════════════════════════════════════════════════════════
+
+Als systemd Service:
+
+   $ sudo cp serverwatch.service /etc/systemd/system/
+   $ sudo systemctl daemon-reload
+   $ sudo systemctl enable serverwatch
+   $ sudo systemctl start serverwatch
+   $ sudo systemctl status serverwatch
+
+
+🎯 FEATURES
+═══════════════════════════════════════════════════════════════════
+
+✅ Multi-Server Monitoring (Minecraft, MySQL, phpMyAdmin)
+✅ Docker Container Integration
+✅ Live Dashboard mit WebSocket
+✅ Discord & Telegram Benachrichtigungen
+✅ SQLite Ausfallhistorie
+✅ Automatische Alerts bei Statuswechsel
+✅ Parallele Checks (alle 7 Sekunden)
+
+
+📞 SUPPORT & CONTRIBUTING
+═══════════════════════════════════════════════════════════════════
+
+Bugs gefunden? → GitHub Issues
+Feature-Ideen? → Pull Requests willkommen!
+Fragen? → Siehe CONTRIBUTING.md
+
+
+🔧 ABHÄNGIGKEITEN
+═══════════════════════════════════════════════════════════════════
+
+• Python 3.9+
+• Docker Remote API Zugang
+• Discord Webhook (optional)
+• Telegram Bot Token (optional)
+
+
+📦 PROJEKT-STRUKTUR
+═══════════════════════════════════════════════════════════════════
+
+serverwatch/
+├── main.py                 # Start hier!
+├── src/
+│   ├── monitor.py          # Haupt-Loop
+│   ├── api.py              # Dashboard Backend
+│   ├── checks/             # Check-Module
+│   ├── notifier_*.py       # Benachrichtigungen
+│   └── ...
+├── dashboard/
+│   └── index.html          # Live-Dashboard
+├── config/
+│   └── servers.json        # Monitoring-Targets
+└── ...
+
+
+✨ NEXT STEPS
+═══════════════════════════════════════════════════════════════════
+
+1. Lies README.md für vollständige Dokumentation
+2. Konfiguriere .env mit deinen Tokens
+3. Passe config/servers.json an
+4. Teste mit: python3 main.py
+5. Öffne Dashboard: http://localhost:8000
+6. Deploye mit systemd für 24/7 Betrieb
+
+
+═══════════════════════════════════════════════════════════════════
+
+   Viel Erfolg mit ServerWatch! 🎉
+
+   Bei Fragen: Siehe Dokumentation oder erstelle ein GitHub Issue
+
+═══════════════════════════════════════════════════════════════════
